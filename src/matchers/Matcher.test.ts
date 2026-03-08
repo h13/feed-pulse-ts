@@ -48,7 +48,7 @@ describe("Matcher", () => {
 		];
 		const results = matcher.match(items);
 		expect(results).toHaveLength(2);
-		expect(results[0]!.score).toBeGreaterThanOrEqual(results[1]!.score);
+		expect(results[0]?.score).toBeGreaterThanOrEqual(results[1]?.score ?? 0);
 	});
 
 	it("should count each topic only once per item", () => {

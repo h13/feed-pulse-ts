@@ -29,9 +29,11 @@ describe("SlackNotifier", () => {
 		await notifier.notify([makeDraft("x-test-1", "x"), makeDraft("blog-test-1", "blog")]);
 
 		expect(mockFetch).toHaveBeenCalledTimes(1);
-		const [url, options] = mockFetch.mock.calls[0]!;
+		const call = mockFetch.mock.calls[0];
+		expect(call).toBeDefined();
+		const [url, options] = call ?? [];
 		expect(url).toBe("https://hooks.slack.com/test");
-		const body = JSON.parse(options.body as string);
+		const body = JSON.parse((options as RequestInit).body as string);
 		expect(body.blocks).toBeDefined();
 	});
 
