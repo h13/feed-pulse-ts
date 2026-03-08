@@ -1,5 +1,7 @@
 # Feed Pulse
 
+[![CI](https://github.com/h13/feed-pulse-ts/actions/workflows/ci.yml/badge.svg)](https://github.com/h13/feed-pulse-ts/actions/workflows/ci.yml)
+
 Automated RSS/Atom feed aggregation pipeline that scores articles by interest,
 generates content with LLMs, and publishes to X and WordPress.
 
