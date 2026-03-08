@@ -66,4 +66,20 @@ describe("DraftStore", () => {
 		const loaded = await store.loadAll();
 		expect(loaded).toHaveLength(0);
 	});
+
+	it("should reject path traversal in draft id on save", async () => {
+		const store = new DraftStore(tmpDir);
+		const draft = makeDraft("../../../etc/passwd");
+		await expect(store.save(draft)).rejects.toThrow("Invalid path");
+	});
+
+	it("should reject path traversal in draft id on delete", async () => {
+		const store = new DraftStore(tmpDir);
+		await expect(store.delete("../../../etc/passwd")).rejects.toThrow("Invalid path");
+	});
+
+	it("should not throw when deleting non-existent draft", async () => {
+		const store = new DraftStore(tmpDir);
+		await expect(store.delete("non-existent-id")).resolves.toBeUndefined();
+	});
 });

@@ -2,8 +2,12 @@ import { join } from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import pino from "pino";
 import { Container } from "../di/Container.js";
+import type { Draft } from "../entities/Draft.js";
+import type { FeedItem } from "../entities/FeedItem.js";
+import type { ScoredItem } from "../entities/ScoredItem.js";
 
 const logger = pino({ name: "agent" });
+const MAX_ITERATIONS = 20;
 
 async function main(): Promise<void> {
 	const userMessage = process.argv.slice(2).join(" ");
@@ -60,8 +64,10 @@ async function main(): Promise<void> {
 
 	const messages: Anthropic.Messages.MessageParam[] = [{ role: "user", content: userMessage }];
 
+	let iterations = 0;
 	let continueLoop = true;
-	while (continueLoop) {
+	while (continueLoop && iterations < MAX_ITERATIONS) {
+		iterations++;
 		const response = await client.messages.create({
 			model: "claude-haiku-4-5-20251001",
 			max_tokens: 1024,
@@ -93,7 +99,11 @@ async function main(): Promise<void> {
 
 			let result: string;
 			try {
-				result = await executeTool(toolUse.name, container);
+				result = await executeTool(
+					toolUse.name,
+					toolUse.input as Record<string, unknown>,
+					container,
+				);
 			} catch (error) {
 				result = `Error: ${error instanceof Error ? error.message : "Unknown error"}`;
 			}
@@ -107,15 +117,27 @@ async function main(): Promise<void> {
 
 		messages.push({ role: "user", content: toolResults });
 	}
+
+	if (iterations >= MAX_ITERATIONS) {
+		logger.warn("Agent reached maximum iteration limit");
+	}
 }
 
-async function executeTool(name: string, container: Container): Promise<string> {
+async function executeTool(
+	name: string,
+	input: Record<string, unknown>,
+	container: Container,
+): Promise<string> {
 	switch (name) {
 		case "fetch_feeds": {
-			const allItems = [];
-			for (const source of container.sources) {
-				const items = await source.fetch();
-				allItems.push(...items);
+			const allItems: FeedItem[] = [];
+			const results = await Promise.allSettled(container.sources.map((s) => s.fetch()));
+			for (const result of results) {
+				if (result.status === "fulfilled") {
+					allItems.push(...result.value);
+				} else {
+					logger.error({ error: result.reason }, "Failed to fetch feed");
+				}
 			}
 			const scored = container.matcher.match(allItems);
 			return JSON.stringify({
@@ -128,6 +150,9 @@ async function executeTool(name: string, container: Container): Promise<string> 
 				})),
 			});
 		}
+		case "generate_drafts": {
+			return generateDrafts(container, input);
+		}
 		case "list_drafts": {
 			const drafts = await container.draftStore.loadAll();
 			return JSON.stringify(
@@ -136,18 +161,93 @@ async function executeTool(name: string, container: Container): Promise<string> 
 		}
 		case "publish_drafts": {
 			const drafts = await container.draftStore.loadAll();
-			const results = await container.publisherPool.publishAll(drafts);
-			for (const result of results) {
+			const publishResults = await container.publisherPool.publishAll(drafts);
+			for (const result of publishResults) {
 				await container.historyStore.save(result);
 			}
-			for (const draft of drafts) {
-				await container.draftStore.delete(draft.id);
+			for (let i = 0; i < publishResults.length; i++) {
+				if (!publishResults[i]?.error) {
+					const draft = drafts[i];
+					if (draft) {
+						await container.draftStore.delete(draft.id);
+					}
+				}
 			}
-			return JSON.stringify(results);
+			return JSON.stringify(publishResults);
 		}
 		default:
 			return `Unknown tool: ${name}`;
 	}
+}
+
+async function generateDrafts(
+	container: Container,
+	input: Record<string, unknown>,
+): Promise<string> {
+	const maxItems = typeof input.max_items === "number" ? input.max_items : 5;
+
+	const allItems: FeedItem[] = [];
+	const fetchResults = await Promise.allSettled(container.sources.map((s) => s.fetch()));
+	for (const result of fetchResults) {
+		if (result.status === "fulfilled") {
+			allItems.push(...result.value);
+		}
+	}
+
+	const scored = container.matcher.match(allItems);
+	const newItems: ScoredItem[] = [];
+	for (const item of scored) {
+		if (newItems.length >= maxItems) break;
+		const processed = await container.stateStore.isProcessed(item.feed.link);
+		if (!processed) {
+			newItems.push(item);
+		}
+	}
+
+	const drafts: Draft[] = [];
+	for (const channel of container.channels) {
+		const { persona, publish, name: channelName } = channel.channel;
+		let count = 0;
+
+		for (const item of newItems) {
+			if (count >= publish.max_per_day) break;
+
+			const templateFile = channel.channel.type === "x" ? "sns-post.md" : "blog-article.md";
+			const systemPrompt = await container.promptBuilder.buildSystemPrompt("voice.md", {
+				tone: persona.tone,
+				style: persona.style,
+				language: persona.language,
+				max_length: String(persona.max_length),
+			});
+			const userPrompt = await container.promptBuilder.buildUserPrompt(templateFile, item);
+			const content = await container.llm.generate(systemPrompt, userPrompt);
+
+			const slug = item.feed.title
+				.toLowerCase()
+				.replace(/[^a-z0-9]+/g, "-")
+				.slice(0, 60);
+			const draft: Draft = {
+				id: `${channelName}-${slug}`,
+				channel: channelName,
+				content,
+				item,
+				createdAt: new Date().toISOString(),
+			};
+
+			await container.draftStore.save(draft);
+			drafts.push(draft);
+			count++;
+		}
+	}
+
+	for (const item of newItems) {
+		await container.stateStore.markProcessed(item.feed.link);
+	}
+
+	return JSON.stringify({
+		generated: drafts.length,
+		drafts: drafts.map((d) => ({ id: d.id, channel: d.channel, title: d.item.feed.title })),
+	});
 }
 
 main().catch((error) => {

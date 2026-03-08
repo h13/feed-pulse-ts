@@ -44,4 +44,22 @@ describe("HistoryStore", () => {
 		const history = await store.loadByDate("2099-01-01");
 		expect(history).toHaveLength(0);
 	});
+
+	it("should reject invalid date format on save", async () => {
+		const store = new HistoryStore(tmpDir);
+		const badResult = { ...result, publishedAt: "not-a-date" };
+		await expect(store.save(badResult)).rejects.toThrow("Invalid date format");
+	});
+
+	it("should reject invalid date format on load", async () => {
+		const store = new HistoryStore(tmpDir);
+		const history = await store.loadByDate("not-a-date");
+		expect(history).toHaveLength(0);
+	});
+
+	it("should reject path traversal in date on save", async () => {
+		const store = new HistoryStore(tmpDir);
+		const badResult = { ...result, publishedAt: "../../etc/passwd-01T00:00:00Z" };
+		await expect(store.save(badResult)).rejects.toThrow("Invalid date format");
+	});
 });

@@ -39,9 +39,14 @@ async function main(): Promise<void> {
 		await container.historyStore.save(result);
 	}
 
-	// Cleanup published drafts
-	for (const draft of draftsToPublish) {
-		await container.draftStore.delete(draft.id);
+	// Cleanup only successfully published drafts
+	for (let i = 0; i < results.length; i++) {
+		if (!results[i]?.error) {
+			const draft = draftsToPublish[i];
+			if (draft) {
+				await container.draftStore.delete(draft.id);
+			}
+		}
 	}
 
 	logger.info("Publish complete");

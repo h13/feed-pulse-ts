@@ -2,7 +2,6 @@ import { join } from "node:path";
 import pino from "pino";
 import { Container } from "../di/Container.js";
 import type { Draft } from "../entities/Draft.js";
-import type { FeedItem } from "../entities/FeedItem.js";
 
 const logger = pino({ name: "pipeline" });
 
@@ -17,15 +16,14 @@ async function main(): Promise<void> {
 
 	// Phase 1: Crawl
 	logger.info("Phase 1: Crawling feeds...");
-	const allItems: FeedItem[] = [];
 	const fetchResults = await Promise.allSettled(container.sources.map((s) => s.fetch()));
-	for (const result of fetchResults) {
+	const allItems = fetchResults.flatMap((result) => {
 		if (result.status === "fulfilled") {
-			allItems.push(...result.value);
-		} else {
-			logger.error({ error: result.reason }, "Failed to fetch feed");
+			return result.value;
 		}
-	}
+		logger.error({ error: result.reason }, "Failed to fetch feed");
+		return [];
+	});
 	logger.info({ count: allItems.length }, "Fetched feed items");
 
 	// Phase 1: Match
@@ -33,13 +31,10 @@ async function main(): Promise<void> {
 	logger.info({ count: scored.length }, "Matched items above threshold");
 
 	// Filter already processed
-	const newItems = [];
-	for (const item of scored) {
-		const processed = await container.stateStore.isProcessed(item.feed.link);
-		if (!processed) {
-			newItems.push(item);
-		}
-	}
+	const processedFlags = await Promise.all(
+		scored.map((item) => container.stateStore.isProcessed(item.feed.link)),
+	);
+	const newItems = scored.filter((_, i) => !processedFlags[i]);
 	logger.info({ count: newItems.length }, "New items to process");
 
 	if (newItems.length === 0) {
@@ -50,6 +45,7 @@ async function main(): Promise<void> {
 	// Phase 2: Generate Drafts
 	logger.info("Phase 2: Generating drafts...");
 	const drafts: Draft[] = [];
+	const draftedUrls = new Set<string>();
 
 	for (const channel of container.channels) {
 		const { persona, publish, name: channelName } = channel.channel;
@@ -85,13 +81,14 @@ async function main(): Promise<void> {
 
 			await container.draftStore.save(draft);
 			drafts.push(draft);
+			draftedUrls.add(item.feed.link);
 			count++;
 		}
 	}
 
-	// Mark all processed
-	for (const item of newItems) {
-		await container.stateStore.markProcessed(item.feed.link);
+	// Only mark items as processed that actually had drafts generated
+	for (const url of draftedUrls) {
+		await container.stateStore.markProcessed(url);
 	}
 
 	logger.info({ count: drafts.length }, "Drafts generated");
