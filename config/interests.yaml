@@ -1,0 +1,15 @@
+interests:
+  - topic: "AI & LLM"
+    keywords:
+      - "artificial intelligence"
+      - "large language model"
+      - "Claude"
+      - "GPT"
+    weight: 1.0
+
+  - topic: "Software Engineering"
+    keywords:
+      - "TypeScript"
+      - "Rust"
+      - "DevOps"
+    weight: 0.8

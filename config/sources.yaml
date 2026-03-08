@@ -1,0 +1,8 @@
+sources:
+  - name: "Hacker News (Best)"
+    url: "https://hnrss.org/best"
+    category: "tech"
+
+  - name: "TechCrunch"
+    url: "https://techcrunch.com/feed/"
+    category: "tech"

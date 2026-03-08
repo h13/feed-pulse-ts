@@ -1,0 +1,14 @@
+channel:
+  name: "blog"
+  enabled: true
+  type: "wordpress"
+
+  persona:
+    tone: "formal"
+    style: "detailed"
+    language: "ja"
+    max_length: 5000
+
+  publish:
+    max_per_day: 2
+    status: "draft"

@@ -1,0 +1,14 @@
+channel:
+  name: "x"
+  enabled: true
+  type: "x"
+
+  persona:
+    tone: "casual"
+    style: "concise"
+    language: "ja"
+    max_length: 280
+
+  publish:
+    max_per_day: 5
+    status: "draft"
