@@ -30,11 +30,10 @@ async function main(): Promise<void> {
 	const scored = container.matcher.match(allItems);
 	logger.info({ count: scored.length }, "Matched items above threshold");
 
-	// Filter already processed
-	const processedFlags = await Promise.all(
-		scored.map((item) => container.stateStore.isProcessed(item.feed.link)),
-	);
-	const newItems = scored.filter((_, i) => !processedFlags[i]);
+	// Filter already processed (load once, O(1) lookup per item)
+	const state = await container.stateStore.load();
+	const processedSet = new Set(state.processedUrls);
+	const newItems = scored.filter((item) => !processedSet.has(item.feed.link));
 	logger.info({ count: newItems.length }, "New items to process");
 
 	if (newItems.length === 0) {

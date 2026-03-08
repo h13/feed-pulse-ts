@@ -44,6 +44,7 @@ export class XPublisher implements PublisherInterface {
 
 			const response = await this.fetchFn(TWEET_URL, {
 				method: "POST",
+				signal: AbortSignal.timeout(30_000),
 				headers: {
 					...authHeader,
 					"Content-Type": "application/json",

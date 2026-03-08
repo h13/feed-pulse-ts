@@ -27,6 +27,7 @@ export class WordPressPublisher implements PublisherInterface {
 
 			const response = await this.fetchFn(`${this.config.apiUrl}/posts`, {
 				method: "POST",
+				signal: AbortSignal.timeout(30_000),
 				headers: {
 					"Content-Type": "application/json",
 					Authorization: `Basic ${auth}`,

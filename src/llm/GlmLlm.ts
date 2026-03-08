@@ -26,6 +26,7 @@ export class GlmLlm implements LlmInterface {
 	async generate(systemPrompt: string, userPrompt: string): Promise<string> {
 		const response = await this.fetchFn(this.apiUrl, {
 			method: "POST",
+			signal: AbortSignal.timeout(30_000),
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer ${this.apiKey}`,

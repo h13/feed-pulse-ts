@@ -37,6 +37,7 @@ export class SlackNotifier implements NotifierInterface {
 		try {
 			const response = await this.fetchFn(this.webhookUrl, {
 				method: "POST",
+				signal: AbortSignal.timeout(30_000),
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ blocks }),
 			});
