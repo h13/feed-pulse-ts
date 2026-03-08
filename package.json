@@ -1,0 +1,40 @@
+{
+  "name": "feed-pulse-ts",
+  "version": "1.0.0",
+  "description": "RSS/Atom feed aggregator with LLM-powered content generation",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit",
+    "pipeline": "tsx src/cli/pipeline.ts",
+    "publish:drafts": "tsx src/cli/publish.ts",
+    "agent": "tsx src/cli/agent.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.30.3",
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.78.0",
+    "crypto-js": "4.2.0",
+    "oauth-1.0a": "2.2.6",
+    "pino": "10.3.1",
+    "rss-parser": "3.13.0",
+    "yaml": "2.8.2",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.6",
+    "@types/node": "25.3.5",
+    "@vitest/coverage-v8": "4.0.18",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "vitest": "4.0.18"
+  }
+}
