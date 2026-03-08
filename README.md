@@ -358,4 +358,4 @@ feed-pulse-ts/
 
 ## License
 
-ISC
+MIT
