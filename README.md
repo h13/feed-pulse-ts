@@ -1,6 +1,9 @@
 # Feed Pulse
 
 [![CI](https://github.com/h13/feed-pulse-ts/actions/workflows/ci.yml/badge.svg)](https://github.com/h13/feed-pulse-ts/actions/workflows/ci.yml)
+![Node.js](https://img.shields.io/badge/Node.js-22%2B-339933?logo=node.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)
+![License](https://img.shields.io/github/license/h13/feed-pulse-ts)
 
 Automated RSS/Atom feed aggregation pipeline that scores articles by interest,
 generates content with LLMs, and publishes to X and WordPress.
