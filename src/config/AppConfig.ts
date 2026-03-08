@@ -1,4 +1,4 @@
-import { readFile, readdir } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
 import { z } from "zod/v4";
@@ -77,9 +77,7 @@ export async function loadAllEnabledChannels(channelsDir: string): Promise<Chann
 	const files = await readdir(channelsDir);
 	const yamlFiles = files.filter((f) => f.endsWith(".yaml") || f.endsWith(".yml"));
 
-	const configs = await Promise.all(
-		yamlFiles.map((f) => loadChannelConfig(join(channelsDir, f))),
-	);
+	const configs = await Promise.all(yamlFiles.map((f) => loadChannelConfig(join(channelsDir, f))));
 
 	return configs.filter((c) => c.channel.enabled);
 }

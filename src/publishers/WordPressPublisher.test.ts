@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { WordPressPublisher } from "./WordPressPublisher.js";
 import type { Draft } from "../entities/Draft.js";
+import { WordPressPublisher } from "./WordPressPublisher.js";
 
 const makeDraft = (): Draft => ({
 	id: "blog-test",

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { SlackNotifier } from "./SlackNotifier.js";
 import type { Draft } from "../entities/Draft.js";
+import { SlackNotifier } from "./SlackNotifier.js";
 
 const makeDraft = (id: string, channel: string): Draft => ({
 	id,

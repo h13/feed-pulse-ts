@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ScoredItemSchema, type ScoredItem } from "./ScoredItem.js";
 import type { FeedItem } from "./FeedItem.js";
+import { type ScoredItem, ScoredItemSchema } from "./ScoredItem.js";
 
 describe("ScoredItemSchema", () => {
 	const feed: FeedItem = {

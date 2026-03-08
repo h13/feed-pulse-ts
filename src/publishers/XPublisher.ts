@@ -1,8 +1,8 @@
-import OAuth from "oauth-1.0a";
 import CryptoJS from "crypto-js";
+import OAuth from "oauth-1.0a";
+import type { PublisherInterface } from "../contracts/PublisherInterface.js";
 import type { Draft } from "../entities/Draft.js";
 import type { PublishResult } from "../entities/PublishResult.js";
-import type { PublisherInterface } from "../contracts/PublisherInterface.js";
 
 interface XCredentials {
 	readonly apiKey: string;

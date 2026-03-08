@@ -1,8 +1,8 @@
 import { join } from "node:path";
 import pino from "pino";
 import { Container } from "../di/Container.js";
-import type { FeedItem } from "../entities/FeedItem.js";
 import type { Draft } from "../entities/Draft.js";
+import type { FeedItem } from "../entities/FeedItem.js";
 
 const logger = pino({ name: "pipeline" });
 
@@ -58,8 +58,7 @@ async function main(): Promise<void> {
 		for (const item of newItems) {
 			if (count >= publish.max_per_day) break;
 
-			const templateFile =
-				channel.channel.type === "x" ? "sns-post.md" : "blog-article.md";
+			const templateFile = channel.channel.type === "x" ? "sns-post.md" : "blog-article.md";
 
 			const systemPrompt = await container.promptBuilder.buildSystemPrompt("voice.md", {
 				tone: persona.tone,

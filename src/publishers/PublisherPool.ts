@@ -1,6 +1,6 @@
+import type { PublisherInterface } from "../contracts/PublisherInterface.js";
 import type { Draft } from "../entities/Draft.js";
 import type { PublishResult } from "../entities/PublishResult.js";
-import type { PublisherInterface } from "../contracts/PublisherInterface.js";
 
 export class PublisherPool {
 	constructor(private readonly publishers: Map<string, PublisherInterface>) {}

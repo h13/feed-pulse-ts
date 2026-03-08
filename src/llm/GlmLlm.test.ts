@@ -27,7 +27,11 @@ describe("GlmLlm", () => {
 			statusText: "Internal Server Error",
 		});
 
-		const llm = new GlmLlm("test-api-key", "https://api.z.ai/api/coding/paas/v4/chat/completions", mockFetch);
+		const llm = new GlmLlm(
+			"test-api-key",
+			"https://api.z.ai/api/coding/paas/v4/chat/completions",
+			mockFetch,
+		);
 		await expect(llm.generate("System", "User")).rejects.toThrow("GLM API error");
 	});
 
@@ -37,7 +41,11 @@ describe("GlmLlm", () => {
 			json: () => Promise.resolve({ choices: [] }),
 		});
 
-		const llm = new GlmLlm("test-api-key", "https://api.z.ai/api/coding/paas/v4/chat/completions", mockFetch);
+		const llm = new GlmLlm(
+			"test-api-key",
+			"https://api.z.ai/api/coding/paas/v4/chat/completions",
+			mockFetch,
+		);
 		await expect(llm.generate("System", "User")).rejects.toThrow("Empty response");
 	});
 });

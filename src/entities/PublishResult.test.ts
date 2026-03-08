@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PublishResultSchema, type PublishResult } from "./PublishResult.js";
+import { type PublishResult, PublishResultSchema } from "./PublishResult.js";
 
 describe("PublishResultSchema", () => {
 	it("should parse a successful result", () => {

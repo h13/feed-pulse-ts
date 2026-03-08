@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { Matcher } from "./Matcher.js";
 import type { FeedItem } from "../entities/FeedItem.js";
+import { Matcher } from "./Matcher.js";
 
 const interests = [
 	{ topic: "AI & LLM", keywords: ["artificial intelligence", "claude", "gpt"], weight: 1.0 },

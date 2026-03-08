@@ -1,6 +1,6 @@
+import type { MatcherInterface } from "../contracts/MatcherInterface.js";
 import type { FeedItem } from "../entities/FeedItem.js";
 import type { ScoredItem } from "../entities/ScoredItem.js";
-import type { MatcherInterface } from "../contracts/MatcherInterface.js";
 
 interface InterestEntry {
 	readonly topic: string;

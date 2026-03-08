@@ -58,9 +58,7 @@ async function main(): Promise<void> {
 		},
 	];
 
-	const messages: Anthropic.Messages.MessageParam[] = [
-		{ role: "user", content: userMessage },
-	];
+	const messages: Anthropic.Messages.MessageParam[] = [{ role: "user", content: userMessage }];
 
 	let continueLoop = true;
 	while (continueLoop) {

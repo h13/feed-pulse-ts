@@ -1,8 +1,8 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
-import { mkdir, writeFile, rm } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { PromptBuilder } from "./PromptBuilder.js";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { ScoredItem } from "../entities/ScoredItem.js";
+import { PromptBuilder } from "./PromptBuilder.js";
 
 const tmpDir = join(import.meta.dirname, "../../tmp-test-prompts");
 

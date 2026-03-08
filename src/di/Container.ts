@@ -1,14 +1,15 @@
 import { join } from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import {
-	loadSourcesConfig,
-	loadInterestsConfig,
-	loadAllEnabledChannels,
 	type ChannelConfig,
+	loadAllEnabledChannels,
+	loadInterestsConfig,
+	loadSourcesConfig,
 } from "../config/AppConfig.js";
 import type { LlmInterface } from "../contracts/LlmInterface.js";
 import type { MatcherInterface } from "../contracts/MatcherInterface.js";
 import type { NotifierInterface } from "../contracts/NotifierInterface.js";
+import type { PublisherInterface } from "../contracts/PublisherInterface.js";
 import type { SourceInterface } from "../contracts/SourceInterface.js";
 import { ClaudeLlm } from "../llm/ClaudeLlm.js";
 import { GlmLlm } from "../llm/GlmLlm.js";
@@ -23,7 +24,6 @@ import { RssSource } from "../sources/RssSource.js";
 import { DraftStore } from "../stores/DraftStore.js";
 import { HistoryStore } from "../stores/HistoryStore.js";
 import { StateStore } from "../stores/StateStore.js";
-import type { PublisherInterface } from "../contracts/PublisherInterface.js";
 
 interface ContainerOptions {
 	readonly configDir: string;
@@ -121,20 +121,26 @@ function createPublisherPool(
 
 	for (const ch of channels) {
 		if (ch.channel.type === "x" && env.X_API_KEY) {
-			publishers.set(ch.channel.name, new XPublisher({
-				apiKey: env.X_API_KEY,
-				apiSecret: env.X_API_SECRET ?? "",
-				accessToken: env.X_ACCESS_TOKEN ?? "",
-				accessSecret: env.X_ACCESS_SECRET ?? "",
-			}));
+			publishers.set(
+				ch.channel.name,
+				new XPublisher({
+					apiKey: env.X_API_KEY,
+					apiSecret: env.X_API_SECRET ?? "",
+					accessToken: env.X_ACCESS_TOKEN ?? "",
+					accessSecret: env.X_ACCESS_SECRET ?? "",
+				}),
+			);
 		}
 		if (ch.channel.type === "wordpress" && env.WORDPRESS_API_URL) {
-			publishers.set(ch.channel.name, new WordPressPublisher({
-				apiUrl: env.WORDPRESS_API_URL,
-				user: env.WORDPRESS_USER ?? "",
-				appPassword: env.WORDPRESS_APP_PASSWORD ?? "",
-				status: ch.channel.publish.status,
-			}));
+			publishers.set(
+				ch.channel.name,
+				new WordPressPublisher({
+					apiUrl: env.WORDPRESS_API_URL,
+					user: env.WORDPRESS_USER ?? "",
+					appPassword: env.WORDPRESS_APP_PASSWORD ?? "",
+					status: ch.channel.publish.status,
+				}),
+			);
 		}
 	}
 

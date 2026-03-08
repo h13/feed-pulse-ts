@@ -1,6 +1,6 @@
+import type { PublisherInterface } from "../contracts/PublisherInterface.js";
 import type { Draft } from "../entities/Draft.js";
 import type { PublishResult } from "../entities/PublishResult.js";
-import type { PublisherInterface } from "../contracts/PublisherInterface.js";
 
 interface WordPressConfig {
 	readonly apiUrl: string;
@@ -23,9 +23,7 @@ export class WordPressPublisher implements PublisherInterface {
 	async publish(draft: Draft): Promise<PublishResult> {
 		const now = new Date().toISOString();
 		try {
-			const auth = Buffer.from(`${this.config.user}:${this.config.appPassword}`).toString(
-				"base64",
-			);
+			const auth = Buffer.from(`${this.config.user}:${this.config.appPassword}`).toString("base64");
 
 			const response = await this.fetchFn(`${this.config.apiUrl}/posts`, {
 				method: "POST",

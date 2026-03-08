@@ -1,6 +1,6 @@
-import type { Draft } from "../entities/Draft.js";
-import type { NotifierInterface } from "../contracts/NotifierInterface.js";
 import pino from "pino";
+import type { NotifierInterface } from "../contracts/NotifierInterface.js";
+import type { Draft } from "../entities/Draft.js";
 
 const logger = pino({ name: "SlackNotifier" });
 

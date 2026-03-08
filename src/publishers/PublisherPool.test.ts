@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { PublisherPool } from "./PublisherPool.js";
 import type { PublisherInterface } from "../contracts/PublisherInterface.js";
 import type { Draft } from "../entities/Draft.js";
+import { PublisherPool } from "./PublisherPool.js";
 
 const makeDraft = (channel: string): Draft => ({
 	id: `${channel}-test`,

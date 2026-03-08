@@ -1,5 +1,5 @@
-import type { Draft } from "../entities/Draft.js";
 import type { NotifierInterface } from "../contracts/NotifierInterface.js";
+import type { Draft } from "../entities/Draft.js";
 
 export class NullNotifier implements NotifierInterface {
 	async notify(_drafts: readonly Draft[]): Promise<void> {

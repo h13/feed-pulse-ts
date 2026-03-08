@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DraftSchema, type Draft } from "./Draft.js";
+import { type Draft, DraftSchema } from "./Draft.js";
 import type { FeedItem } from "./FeedItem.js";
 import type { ScoredItem } from "./ScoredItem.js";
 

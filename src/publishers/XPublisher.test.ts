@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { XPublisher } from "./XPublisher.js";
 import type { Draft } from "../entities/Draft.js";
+import { XPublisher } from "./XPublisher.js";
 
 const makeDraft = (): Draft => ({
 	id: "x-test",

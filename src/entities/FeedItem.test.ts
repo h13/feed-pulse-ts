@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FeedItemSchema, type FeedItem } from "./FeedItem.js";
+import { type FeedItem, FeedItemSchema } from "./FeedItem.js";
 
 describe("FeedItemSchema", () => {
 	const validItem: FeedItem = {

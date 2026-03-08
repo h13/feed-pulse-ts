@@ -1,11 +1,11 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
-import { mkdir, writeFile, rm } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
-	loadSourcesConfig,
-	loadInterestsConfig,
-	loadChannelConfig,
 	loadAllEnabledChannels,
+	loadChannelConfig,
+	loadInterestsConfig,
+	loadSourcesConfig,
 } from "./AppConfig.js";
 
 const tmpDir = join(import.meta.dirname, "../../tmp-test-config");
