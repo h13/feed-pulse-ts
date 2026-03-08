@@ -82,4 +82,12 @@ describe("DraftStore", () => {
 		const store = new DraftStore(tmpDir);
 		await expect(store.delete("non-existent-id")).resolves.toBeUndefined();
 	});
+
+	it("should return empty array when directory contains corrupted JSON", async () => {
+		const { writeFile } = await import("node:fs/promises");
+		await writeFile(join(tmpDir, "corrupted.json"), "not valid json");
+		const store = new DraftStore(tmpDir);
+		const loaded = await store.loadAll();
+		expect(loaded).toHaveLength(0);
+	});
 });

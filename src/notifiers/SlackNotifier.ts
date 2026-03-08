@@ -6,6 +6,10 @@ const logger = pino({ name: "SlackNotifier" });
 
 type FetchFn = typeof globalThis.fetch;
 
+function escapeMrkdwn(text: string): string {
+	return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 export class SlackNotifier implements NotifierInterface {
 	private readonly webhookUrl: string;
 	private readonly fetchFn: FetchFn;
@@ -29,7 +33,7 @@ export class SlackNotifier implements NotifierInterface {
 				type: "section",
 				text: {
 					type: "mrkdwn",
-					text: `*${draft.item.feed.title}*\nChannel: ${draft.channel} | Topics: ${draft.item.matchedTopics.join(", ")}\n>${draft.content.slice(0, 100)}...`,
+					text: `*${escapeMrkdwn(draft.item.feed.title)}*\nChannel: ${escapeMrkdwn(draft.channel)} | Topics: ${escapeMrkdwn(draft.item.matchedTopics.join(", "))}\n>${escapeMrkdwn(draft.content.slice(0, 100))}...`,
 				},
 			})),
 		];

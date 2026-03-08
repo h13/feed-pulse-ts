@@ -9,6 +9,8 @@ const StateSchema = z.object({
 
 type State = z.infer<typeof StateSchema>;
 
+const MAX_PROCESSED_URLS = 10_000;
+
 export class StateStore {
 	constructor(private readonly filePath: string) {}
 
@@ -31,8 +33,10 @@ export class StateStore {
 		if (state.processedUrls.includes(url)) {
 			return;
 		}
+		const urls = [...state.processedUrls, url];
+		const trimmed = urls.length > MAX_PROCESSED_URLS ? urls.slice(-MAX_PROCESSED_URLS) : urls;
 		const updated: State = {
-			processedUrls: [...state.processedUrls, url],
+			processedUrls: trimmed,
 			lastRun: new Date().toISOString(),
 		};
 		await mkdir(dirname(this.filePath), { recursive: true });

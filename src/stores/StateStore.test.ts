@@ -54,4 +54,30 @@ describe("StateStore", () => {
 			1,
 		);
 	});
+
+	it("should return default state for corrupted file", async () => {
+		const filePath = join(tmpDir, "processed.json");
+		const { writeFile } = await import("node:fs/promises");
+		await writeFile(filePath, "not valid json");
+		const store = new StateStore(filePath);
+		const state = await store.load();
+		expect(state.processedUrls).toEqual([]);
+		expect(state.lastRun).toBe("");
+	});
+
+	it("should trim oldest urls when exceeding max size", async () => {
+		const filePath = join(tmpDir, "processed.json");
+		const { writeFile } = await import("node:fs/promises");
+		const urls = Array.from({ length: 10_000 }, (_, i) => `https://example.com/article-${i}`);
+		await writeFile(filePath, JSON.stringify({ processedUrls: urls, lastRun: "" }));
+
+		const store = new StateStore(filePath);
+		await store.markProcessed("https://example.com/new-article");
+		const state = await store.load();
+		expect(state.processedUrls).toHaveLength(10_000);
+		expect(state.processedUrls[state.processedUrls.length - 1]).toBe(
+			"https://example.com/new-article",
+		);
+		expect(state.processedUrls).not.toContain("https://example.com/article-0");
+	});
 });

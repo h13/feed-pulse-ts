@@ -105,10 +105,14 @@ export class Container {
 function createLlm(env: Record<string, string | undefined>): LlmInterface {
 	if (env.ANTHROPIC_API_KEY) {
 		const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
-		return new ClaudeLlm(client);
+		return new ClaudeLlm(client, env.CLAUDE_MODEL);
 	}
 	if (env.GLM_API_KEY) {
-		return new GlmLlm(env.GLM_API_KEY, env.GLM_API_URL);
+		return new GlmLlm({
+			apiKey: env.GLM_API_KEY,
+			apiUrl: env.GLM_API_URL,
+			model: env.GLM_MODEL,
+		});
 	}
 	throw new Error("Either ANTHROPIC_API_KEY or GLM_API_KEY must be set");
 }

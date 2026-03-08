@@ -48,4 +48,25 @@ describe("GlmLlm", () => {
 		);
 		await expect(llm.generate("System", "User")).rejects.toThrow("Empty response");
 	});
+
+	it("should accept options object with custom model", async () => {
+		const mockFetch = vi.fn().mockResolvedValue({
+			ok: true,
+			json: () =>
+				Promise.resolve({
+					choices: [{ message: { content: "custom model response" } }],
+				}),
+		});
+
+		const llm = new GlmLlm({
+			apiKey: "test-api-key",
+			model: "glm-4-plus",
+			fetchFn: mockFetch,
+		});
+		const result = await llm.generate("System", "User");
+		expect(result).toBe("custom model response");
+
+		const body = JSON.parse(mockFetch.mock.calls[0]?.[1]?.body as string);
+		expect(body.model).toBe("glm-4-plus");
+	});
 });

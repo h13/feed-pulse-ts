@@ -1,5 +1,5 @@
 import { mkdir, readdir, readFile, unlink, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { resolve } from "node:path";
 import { type Draft, DraftSchema } from "../entities/Draft.js";
 
 function safePath(baseDir: string, filename: string): string {
@@ -25,7 +25,7 @@ export class DraftStore {
 			const jsonFiles = files.filter((f) => f.endsWith(".json"));
 			const drafts = await Promise.all(
 				jsonFiles.map(async (f) => {
-					const content = await readFile(join(this.dir, f), "utf-8");
+					const content = await readFile(safePath(this.dir, f), "utf-8");
 					return DraftSchema.parse(JSON.parse(content));
 				}),
 			);

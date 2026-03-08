@@ -55,4 +55,37 @@ describe("SlackNotifier", () => {
 		const notifier = new SlackNotifier("https://hooks.slack.com/test", mockFetch);
 		await expect(notifier.notify([makeDraft("x-test", "x")])).resolves.toBeUndefined();
 	});
+
+	it("should escape mrkdwn special characters in content", async () => {
+		const mockFetch = vi.fn().mockResolvedValue({ ok: true });
+		const notifier = new SlackNotifier("https://hooks.slack.com/test", mockFetch);
+
+		const draft: Draft = {
+			id: "x-inject",
+			channel: "x",
+			content: "<script>alert('xss')</script> & *bold* attack",
+			item: {
+				feed: {
+					title: "Test <b>HTML</b> & *mrkdwn*",
+					link: "https://example.com/test",
+					description: "Test",
+					pubDate: "2026-03-08T08:00:00Z",
+					source: "HN",
+					category: "tech",
+				},
+				score: 1.0,
+				matchedTopics: ["AI"],
+			},
+			createdAt: "2026-03-08T09:00:00Z",
+		};
+
+		await notifier.notify([draft]);
+
+		const body = JSON.parse(mockFetch.mock.calls[0]?.[1]?.body as string);
+		const sectionText = body.blocks[1].text.text;
+		expect(sectionText).toContain("&lt;b&gt;HTML&lt;/b&gt;");
+		expect(sectionText).toContain("&amp;");
+		expect(sectionText).not.toContain("<b>");
+		expect(sectionText).not.toContain("<script>");
+	});
 });

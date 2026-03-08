@@ -131,6 +131,74 @@ describe("Container", () => {
 		expect(container.publisherPool).toBeDefined();
 	});
 
+	it("should skip X publisher when partial credentials are set", async () => {
+		const container = await Container.create({
+			configDir: join(tmpDir, "config"),
+			stateDir: join(tmpDir, "state"),
+			promptsDir: join(tmpDir, "prompts"),
+			env: {
+				ANTHROPIC_API_KEY: "test-key",
+				X_API_KEY: "key",
+			},
+		});
+
+		expect(container.publisherPool).toBeDefined();
+	});
+
+	it("should skip WordPress publisher when partial credentials are set", async () => {
+		await writeFile(
+			join(tmpDir, "config/channels/blog.yaml"),
+			`channel:
+  name: "blog"
+  enabled: true
+  type: "wordpress"
+  persona:
+    tone: "formal"
+    style: "detailed"
+    language: "ja"
+    max_length: 5000
+  publish:
+    max_per_day: 2
+    status: "draft"
+`,
+		);
+
+		const container = await Container.create({
+			configDir: join(tmpDir, "config"),
+			stateDir: join(tmpDir, "state"),
+			promptsDir: join(tmpDir, "prompts"),
+			env: {
+				ANTHROPIC_API_KEY: "test-key",
+				WORDPRESS_API_URL: "https://blog.example.com/wp-json/wp/v2",
+			},
+		});
+
+		expect(container.publisherPool).toBeDefined();
+		expect(container.channels).toHaveLength(2);
+	});
+
+	it("should pass custom model to ClaudeLlm when CLAUDE_MODEL is set", async () => {
+		const container = await Container.create({
+			configDir: join(tmpDir, "config"),
+			stateDir: join(tmpDir, "state"),
+			promptsDir: join(tmpDir, "prompts"),
+			env: { ANTHROPIC_API_KEY: "test-key", CLAUDE_MODEL: "claude-sonnet-4-5-20250514" },
+		});
+
+		expect(container.llm).toBeDefined();
+	});
+
+	it("should pass custom model to GlmLlm when GLM_MODEL is set", async () => {
+		const container = await Container.create({
+			configDir: join(tmpDir, "config"),
+			stateDir: join(tmpDir, "state"),
+			promptsDir: join(tmpDir, "prompts"),
+			env: { GLM_API_KEY: "test-key", GLM_MODEL: "glm-4-plus" },
+		});
+
+		expect(container.llm).toBeDefined();
+	});
+
 	it("should register WordPress publisher when WP credentials are set", async () => {
 		await writeFile(
 			join(tmpDir, "config/channels/blog.yaml"),

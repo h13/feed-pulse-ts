@@ -54,4 +54,21 @@ describe("PromptBuilder", () => {
 		const builder = new PromptBuilder(tmpDir);
 		await expect(builder.buildSystemPrompt("nonexistent.md", {})).rejects.toThrow();
 	});
+
+	it("should not recursively replace template variables in values", async () => {
+		await writeFile(join(tmpDir, "inject.md"), "Title: {{title}}\nStyle: {{style}}");
+		const builder = new PromptBuilder(tmpDir);
+		const prompt = await builder.buildSystemPrompt("inject.md", {
+			title: "{{style}}",
+			style: "formal",
+		});
+		expect(prompt).toBe("Title: {{style}}\nStyle: formal");
+	});
+
+	it("should preserve unmatched template variables", async () => {
+		await writeFile(join(tmpDir, "partial.md"), "{{known}} and {{unknown}}");
+		const builder = new PromptBuilder(tmpDir);
+		const prompt = await builder.buildSystemPrompt("partial.md", { known: "value" });
+		expect(prompt).toBe("value and {{unknown}}");
+	});
 });

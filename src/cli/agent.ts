@@ -69,7 +69,7 @@ async function main(): Promise<void> {
 	while (continueLoop && iterations < MAX_ITERATIONS) {
 		iterations++;
 		const response = await client.messages.create({
-			model: "claude-haiku-4-5-20251001",
+			model: process.env.CLAUDE_MODEL ?? "claude-haiku-4-5-20251001",
 			max_tokens: 1024,
 			system:
 				"You are a feed management assistant. Use the available tools to help the user manage their RSS feeds, generate content drafts, and publish them.",

@@ -29,9 +29,7 @@ export class PromptBuilder {
 	}
 
 	private replaceVariables(template: string, variables: Record<string, string>): string {
-		return Object.entries(variables).reduce(
-			(result, [key, value]) => result.replaceAll(`{{${key}}}`, value),
-			template,
-		);
+		const pattern = /\{\{(\w+)\}\}/g;
+		return template.replace(pattern, (match, key: string) => variables[key] ?? match);
 	}
 }

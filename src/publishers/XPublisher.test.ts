@@ -83,4 +83,22 @@ describe("XPublisher", () => {
 		expect(result.url).toBeNull();
 		expect(result.error).toBe("Network timeout");
 	});
+
+	it("should handle non-Error thrown values", async () => {
+		const mockFetch = vi.fn().mockRejectedValue("string error");
+
+		const publisher = new XPublisher(
+			{
+				apiKey: "key",
+				apiSecret: "secret",
+				accessToken: "token",
+				accessSecret: "access-secret",
+			},
+			mockFetch,
+		);
+
+		const result = await publisher.publish(makeDraft());
+		expect(result.url).toBeNull();
+		expect(result.error).toBe("Unknown error");
+	});
 });

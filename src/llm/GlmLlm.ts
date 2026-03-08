@@ -1,6 +1,7 @@
 import type { LlmInterface } from "../contracts/LlmInterface.js";
 
 const DEFAULT_URL = "https://api.z.ai/api/coding/paas/v4/chat/completions";
+const DEFAULT_MODEL = "glm-4.7";
 
 type FetchFn = typeof globalThis.fetch;
 
@@ -12,15 +13,33 @@ interface GlmResponse {
 	choices: GlmChoice[];
 }
 
+interface GlmLlmOptions {
+	readonly apiKey: string;
+	readonly apiUrl?: string;
+	readonly model?: string;
+	readonly fetchFn?: FetchFn;
+}
+
 export class GlmLlm implements LlmInterface {
 	private readonly apiKey: string;
 	private readonly apiUrl: string;
+	private readonly model: string;
 	private readonly fetchFn: FetchFn;
 
-	constructor(apiKey: string, apiUrl?: string, fetchFn?: FetchFn) {
-		this.apiKey = apiKey;
-		this.apiUrl = apiUrl ?? DEFAULT_URL;
-		this.fetchFn = fetchFn ?? globalThis.fetch;
+	constructor(options: GlmLlmOptions);
+	constructor(apiKey: string, apiUrl?: string, fetchFn?: FetchFn);
+	constructor(optionsOrKey: GlmLlmOptions | string, apiUrl?: string, fetchFn?: FetchFn) {
+		if (typeof optionsOrKey === "string") {
+			this.apiKey = optionsOrKey;
+			this.apiUrl = apiUrl ?? DEFAULT_URL;
+			this.model = DEFAULT_MODEL;
+			this.fetchFn = fetchFn ?? globalThis.fetch;
+		} else {
+			this.apiKey = optionsOrKey.apiKey;
+			this.apiUrl = optionsOrKey.apiUrl ?? DEFAULT_URL;
+			this.model = optionsOrKey.model ?? DEFAULT_MODEL;
+			this.fetchFn = optionsOrKey.fetchFn ?? globalThis.fetch;
+		}
 	}
 
 	async generate(systemPrompt: string, userPrompt: string): Promise<string> {
@@ -32,7 +51,7 @@ export class GlmLlm implements LlmInterface {
 				Authorization: `Bearer ${this.apiKey}`,
 			},
 			body: JSON.stringify({
-				model: "glm-4.7",
+				model: this.model,
 				max_tokens: 8192,
 				messages: [
 					{ role: "system", content: systemPrompt },

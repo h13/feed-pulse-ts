@@ -94,4 +94,39 @@ describe("RssSource", () => {
 
 		await expect(source.fetch()).rejects.toThrow("Failed to fetch feed");
 	});
+
+	it("should handle non-Error thrown values in parser", async () => {
+		const mockParser = {
+			parseURL: vi.fn().mockRejectedValue("unexpected string error"),
+		};
+
+		const source = new RssSource(
+			{ name: "Test Feed", url: "https://example.com/feed", category: "tech" },
+			mockParser as never,
+		);
+
+		await expect(source.fetch()).rejects.toThrow("Unknown error");
+	});
+
+	it("should default title to empty string when missing", async () => {
+		const mockParser = {
+			parseURL: vi.fn().mockResolvedValue({
+				items: [
+					{
+						link: "https://example.com/no-title",
+						contentSnippet: "Content without title",
+					},
+				],
+			}),
+		};
+
+		const source = new RssSource(
+			{ name: "Test Feed", url: "https://example.com/feed", category: "tech" },
+			mockParser as never,
+		);
+
+		const items = await source.fetch();
+		expect(items).toHaveLength(1);
+		expect(items[0]?.title).toBe("");
+	});
 });
