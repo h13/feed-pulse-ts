@@ -1,127 +1,142 @@
 # Feed Pulse
 
-RSS/Atom フィードを自動収集し、興味関心に基づいてスコアリング、LLM でコンテンツを生成し、X や WordPress へ配信するパイプライン。
+Automated RSS/Atom feed aggregation pipeline that scores articles by interest,
+generates content with LLMs, and publishes to X and WordPress.
 
 ```text
 Crawl → Match → Generate → Publish
 ```
 
-## 特徴
+## Features
 
-- **興味ベースのフィルタリング** — トピック×キーワードの重み付きスコアリングで関連記事を自動抽出
-- **LLM コンテンツ生成** — Claude / GLM (Z.ai) 対応。チャンネルごとにペルソナ・文体・言語を設定可能
-- **マルチチャンネル配信** — X (OAuth 1.0a) と WordPress (REST API) に対応
-- **3 フェーズ設計** — Crawl+Match / Generate / Publish を分離。ドラフトを永続化し、レビュー後に配信
-- **エージェントモード** — Claude tool-use による対話的操作
-- **冪等性** — 処理済み URL を追跡し、重複生成を防止
-- **Slack 通知** — Block Kit 形式で新着ドラフトを通知
+- **Interest-based filtering** — Weighted keyword scoring across configurable topics
+- **LLM content generation** — Claude and GLM (Z.ai) with
+  per-channel persona settings
+- **Multi-channel publishing** — X (OAuth 1.0a) and
+  WordPress (REST API)
+- **3-phase design** — Crawl+Match / Generate / Publish are
+  separated; drafts persist for review before publishing
+- **Agent mode** — Interactive operation via Claude tool-use
+- **Idempotent** — Tracks processed URLs to prevent duplicate generation
+- **Slack notifications** — Block Kit summaries for new drafts
 
-## アーキテクチャ
+## Architecture
 
 ```text
 Phase 1: CRAWL + MATCH
   RssSource.fetch()          → FeedItem[]
   Matcher.match()            → ScoredItem[]
-  StateStore.isProcessed()   → 重複除外
+  StateStore.isProcessed()   → Deduplicate
        ↓
 Phase 2: GENERATE DRAFTS
   PromptBuilder + LLM        → Draft content
-  DraftStore.save()          → 永続化
-  SlackNotifier.notify()     → 通知
+  DraftStore.save()          → Persist
+  SlackNotifier.notify()     → Notify
        ↓
 Phase 3: PUBLISH
   PublisherPool.publish()    → PublishResult[]
-  HistoryStore.save()        → 履歴記録
-  DraftStore.delete()        → クリーンアップ (成功分のみ)
+  HistoryStore.save()        → Record history
+  DraftStore.delete()        → Cleanup (successful only)
 ```
 
-## セットアップ
+## Setup
 
-### 前提条件
+### Prerequisites
 
 - Node.js 22+ (LTS)
 - pnpm 10+
 
-### インストール
+### Install
 
 ```bash
 pnpm install
 ```
 
-### 環境変数
+### Environment Variables
 
-`.env` ファイルを作成:
+Create a `.env` file:
 
 ```bash
-# LLM (いずれか必須)
+# LLM (one required)
 ANTHROPIC_API_KEY=sk-ant-...
 # GLM_API_KEY=...
 # GLM_API_URL=https://api.z.ai/api/coding/paas/v4/chat/completions
 
-# モデル設定 (任意)
+# Model override (optional)
 # CLAUDE_MODEL=claude-haiku-4-5-20251001
 # GLM_MODEL=glm-4.7
 
-# X (任意 — 4つ全て必要)
+# X (optional — all 4 required together)
 # X_API_KEY=...
 # X_API_SECRET=...
 # X_ACCESS_TOKEN=...
 # X_ACCESS_SECRET=...
 
-# WordPress (任意 — 3つ全て必要)
+# WordPress (optional — all 3 required together)
 # WORDPRESS_API_URL=https://example.com/wp-json/wp/v2
 # WORDPRESS_USER=admin
 # WORDPRESS_APP_PASSWORD=xxxx-xxxx-xxxx
 
-# Slack 通知 (任意)
+# Slack notifications (optional)
 # SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
 ```
 
-| 変数                     | 必須       | 説明                                                      |
-| ------------------------ | ---------- | --------------------------------------------------------- |
-| `ANTHROPIC_API_KEY`      | \*いずれか | Claude API キー                                           |
-| `GLM_API_KEY`            | \*いずれか | GLM (Z.ai) API キー                                       |
-| `GLM_API_URL`            | 任意       | GLM エンドポイント                                        |
-| `CLAUDE_MODEL`           | 任意       | Claude モデル名 (デフォルト: `claude-haiku-4-5-20251001`) |
-| `GLM_MODEL`              | 任意       | GLM モデル名 (デフォルト: `glm-4.7`)                      |
-| `X_API_KEY`              | 任意       | X API consumer key                                        |
-| `X_API_SECRET`           | 任意       | X API consumer secret                                     |
-| `X_ACCESS_TOKEN`         | 任意       | X アクセストークン                                        |
-| `X_ACCESS_SECRET`        | 任意       | X アクセストークンシークレット                            |
-| `WORDPRESS_API_URL`      | 任意       | WordPress REST API ベース URL                             |
-| `WORDPRESS_USER`         | 任意       | WordPress ユーザー名                                      |
-| `WORDPRESS_APP_PASSWORD` | 任意       | WordPress アプリパスワード                                |
-| `SLACK_WEBHOOK_URL`      | 任意       | Slack Webhook URL                                         |
+**LLM** (one of these is required):
 
-## 使い方
+- `ANTHROPIC_API_KEY` — Claude API key
+- `GLM_API_KEY` — GLM (Z.ai) API key
+- `GLM_API_URL` — GLM endpoint (optional)
+- `CLAUDE_MODEL` — Claude model name (optional,
+  default: `claude-haiku-4-5-20251001`)
+- `GLM_MODEL` — GLM model name (optional,
+  default: `glm-4.7`)
 
-### CLI コマンド
+**X** (optional — all 4 required together):
+
+- `X_API_KEY` — Consumer key
+- `X_API_SECRET` — Consumer secret
+- `X_ACCESS_TOKEN` — Access token
+- `X_ACCESS_SECRET` — Access token secret
+
+**WordPress** (optional — all 3 required together):
+
+- `WORDPRESS_API_URL` — REST API base URL
+- `WORDPRESS_USER` — Username
+- `WORDPRESS_APP_PASSWORD` — Application password
+
+**Notifications** (optional):
+
+- `SLACK_WEBHOOK_URL` — Slack incoming webhook URL
+
+## Usage
+
+### CLI Commands
 
 ```bash
-# Phase 1+2: フィード取得 → マッチ → ドラフト生成
+# Phase 1+2: Fetch feeds → Match → Generate drafts
 pnpm pipeline
 
-# Phase 3: 全ドラフトを配信
+# Phase 3: Publish all drafts
 pnpm publish:drafts
 
-# Phase 3: 特定のドラフトだけ配信
+# Phase 3: Publish a specific draft
 pnpm publish:drafts <draft-id>
 
-# エージェントモード (Claude tool-use)
-pnpm agent "新しいアイテムをチェックしてドラフト生成して"
+# Agent mode (Claude tool-use)
+pnpm agent "Check for new items and generate drafts"
 ```
 
-### バッチ運用 (cron)
+### Batch Operation (cron)
 
 ```bash
-# 毎日朝 8 時にフィード取得 + ドラフト生成
+# Fetch feeds + generate drafts daily at 8 AM
 0 8 * * * cd /path/to/feed-pulse-ts && pnpm pipeline
 
-# 毎日昼 12 時にドラフト配信
+# Publish drafts daily at noon
 0 12 * * * cd /path/to/feed-pulse-ts && pnpm publish:drafts
 ```
 
-GitHub Actions でスケジュール実行する場合:
+GitHub Actions scheduled workflow:
 
 ```yaml
 name: Feed Pipeline
@@ -147,27 +162,27 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 ```
 
-### エージェントモード
+### Agent Mode
 
-Claude の tool-use を使った対話的操作。以下の 4 ツールが利用可能:
+Interactive operation via Claude tool-use. Four tools are available:
 
-| ツール            | 説明                                   |
-| ----------------- | -------------------------------------- |
-| `fetch_feeds`     | 全フィードを取得しマッチング結果を返す |
-| `generate_drafts` | マッチしたアイテムからドラフトを生成   |
-| `list_drafts`     | 保留中のドラフト一覧を表示             |
-| `publish_drafts`  | 全ドラフトを配信                       |
+| Tool              | Description                              |
+| ----------------- | ---------------------------------------- |
+| `fetch_feeds`     | Fetch all feeds and return matched items |
+| `generate_drafts` | Generate drafts from matched items       |
+| `list_drafts`     | List all pending drafts                  |
+| `publish_drafts`  | Publish all pending drafts               |
 
 ```bash
-pnpm agent "今日の注目記事を教えて"
-pnpm agent "AIに関する記事だけドラフトを作って"
+pnpm agent "What are today's top articles?"
+pnpm agent "Generate drafts for AI-related articles only"
 ```
 
-## 設定ファイル
+## Configuration
 
 ### config/sources.yaml
 
-RSS/Atom フィードソースの定義:
+RSS/Atom feed source definitions:
 
 ```yaml
 sources:
@@ -182,7 +197,7 @@ sources:
 
 ### config/interests.yaml
 
-興味関心トピックの定義。`weight` はスコアリングの重み:
+Interest topic definitions. `weight` controls scoring priority:
 
 ```yaml
 interests:
@@ -204,7 +219,7 @@ interests:
 
 ### config/channels/{name}.yaml
 
-配信チャンネルの定義。`type` は `x` または `wordpress`:
+Publishing channel definitions. `type` is `x` or `wordpress`:
 
 ```yaml
 channel:
@@ -223,126 +238,118 @@ channel:
     status: "draft"
 ```
 
-### プロンプトテンプレート
+### Prompt Templates
 
-`prompts/` ディレクトリにテンプレートを配置。
-`{{変数名}}` で値を埋め込み:
+Place templates in `prompts/`.
+Variables are interpolated with `{{variable_name}}` syntax:
 
-- **`voice.md`** — ペルソナ定義
-  - 変数: `{{tone}}`, `{{style}}`, `{{language}}`, `{{max_length}}`
-- **`sns-post.md`** — SNS 投稿用
-  - 変数: `{{title}}`, `{{description}}`, `{{link}}`, `{{topics}}`
-- **`blog-article.md`** — ブログ記事用
-  - 変数: `{{title}}`, `{{description}}`, `{{link}}`, `{{topics}}`
+- **`voice.md`** — Persona definition
+  - Variables: `{{tone}}`, `{{style}}`, `{{language}}`, `{{max_length}}`
+- **`sns-post.md`** — SNS post template
+  - Variables: `{{title}}`, `{{description}}`, `{{link}}`, `{{topics}}`
+- **`blog-article.md`** — Blog article template
+  - Variables: `{{title}}`, `{{description}}`, `{{link}}`, `{{topics}}`
 
-## 開発
+## Development
 
 ```bash
-# 型チェック
-pnpm typecheck
-
-# リント
-pnpm lint
-
-# リント + 自動修正
-pnpm lint:fix
-
-# テスト
-pnpm test
-
-# テスト (watch モード)
-pnpm test:watch
-
-# テスト + カバレッジ
-pnpm test:coverage
-
-# ビルド
-pnpm build
+pnpm typecheck    # Type checking
+pnpm lint         # Lint
+pnpm lint:fix     # Lint with auto-fix
+pnpm test         # Run tests
+pnpm test:watch   # Run tests in watch mode
+pnpm test:coverage # Run tests with coverage
+pnpm build        # Build
 ```
 
-### プロジェクト構成
+### Project Structure
 
 ```text
 feed-pulse-ts/
 ├── src/
-│   ├── cli/                  # CLI エントリポイント
+│   ├── cli/                  # CLI entry points
 │   │   ├── pipeline.ts       #   Phase 1+2: Crawl → Match → Generate
 │   │   ├── publish.ts        #   Phase 3: Publish
-│   │   └── agent.ts          #   Claude tool-use エージェント
+│   │   └── agent.ts          #   Claude tool-use agent
 │   ├── config/
-│   │   └── AppConfig.ts      # YAML 設定ローダー (Zod バリデーション)
-│   ├── contracts/             # インターフェース定義
+│   │   └── AppConfig.ts      # YAML config loader (Zod validation)
+│   ├── contracts/             # Interface definitions
 │   │   ├── LlmInterface.ts
 │   │   ├── SourceInterface.ts
 │   │   ├── MatcherInterface.ts
 │   │   ├── PublisherInterface.ts
 │   │   └── NotifierInterface.ts
 │   ├── di/
-│   │   └── Container.ts      # DI コンテナ (ファクトリベース)
-│   ├── entities/              # Zod スキーマ + 型定義
+│   │   └── Container.ts      # DI container (factory-based)
+│   ├── entities/              # Zod schemas + type definitions
 │   │   ├── FeedItem.ts
 │   │   ├── ScoredItem.ts
 │   │   ├── Draft.ts
 │   │   └── PublishResult.ts
 │   ├── llm/
-│   │   ├── ClaudeLlm.ts      # Anthropic SDK ラッパー
-│   │   ├── GlmLlm.ts         # OpenAI 互換 GLM クライアント
-│   │   └── PromptBuilder.ts  # テンプレート変数置換
+│   │   ├── ClaudeLlm.ts      # Anthropic SDK wrapper
+│   │   ├── GlmLlm.ts         # OpenAI-compatible GLM client
+│   │   └── PromptBuilder.ts  # Template variable substitution
 │   ├── matchers/
-│   │   └── Matcher.ts        # キーワードスコアリング
+│   │   └── Matcher.ts        # Keyword scoring
 │   ├── notifiers/
-│   │   ├── SlackNotifier.ts  # Block Kit Webhook
+│   │   ├── SlackNotifier.ts  # Block Kit webhook
 │   │   └── NullNotifier.ts   # No-op
 │   ├── publishers/
-│   │   ├── PublisherPool.ts  # チャンネルディスパッチ
+│   │   ├── PublisherPool.ts  # Channel dispatch
 │   │   ├── XPublisher.ts     # X API v2 (OAuth 1.0a)
 │   │   └── WordPressPublisher.ts # WP REST API
 │   └── stores/
-│       ├── StateStore.ts     # 処理済み URL 追跡 (10K キャップ)
-│       ├── DraftStore.ts     # ドラフト永続化
-│       └── HistoryStore.ts   # 配信履歴 (日付別)
-├── config/                    # 設定ファイル
+│       ├── StateStore.ts     # Processed URL tracking (10K cap)
+│       ├── DraftStore.ts     # Draft persistence
+│       └── HistoryStore.ts   # Publish history (date-partitioned)
+├── config/                    # Configuration files
 │   ├── sources.yaml
 │   ├── interests.yaml
 │   └── channels/
 │       ├── x.yaml
 │       └── blog.yaml
-├── prompts/                   # LLM プロンプトテンプレート
+├── prompts/                   # LLM prompt templates
 │   ├── voice.md
 │   ├── sns-post.md
 │   └── blog-article.md
-└── state/                     # ランタイム状態 (gitignore)
+└── state/                     # Runtime state (gitignored)
     ├── processed.json
     ├── drafts/
     └── history/
 ```
 
-### 技術スタック
+### Tech Stack
 
-| カテゴリ            | 技術                                             |
-| ------------------- | ------------------------------------------------ |
-| ランタイム          | Node.js 22+ (LTS)                                |
-| 言語                | TypeScript 5.x (strict mode)                     |
-| RSS パース          | rss-parser                                       |
-| LLM                 | @anthropic-ai/sdk (Claude), OpenAI 互換 (GLM)    |
-| 設定                | YAML + Zod v4 ランタイムバリデーション           |
-| OAuth               | oauth-1.0a + crypto-js                           |
-| テスト              | vitest + @vitest/coverage-v8                     |
-| リンタ/フォーマッタ | Biome                                            |
-| ログ                | pino (構造化 JSON)                               |
-| CI                  | GitHub Actions (typecheck → lint → test → build) |
-| 依存管理            | pnpm (pin 運用) + Renovate                       |
+- **Runtime:** Node.js 22+ (LTS)
+- **Language:** TypeScript 5.x (strict mode)
+- **RSS Parsing:** rss-parser
+- **LLM:** @anthropic-ai/sdk (Claude), OpenAI-compat (GLM)
+- **Config:** YAML + Zod v4 runtime validation
+- **OAuth:** oauth-1.0a + crypto-js
+- **Testing:** vitest + @vitest/coverage-v8
+- **Linter/Formatter:** Biome
+- **Logging:** pino (structured JSON)
+- **CI:** GitHub Actions (typecheck → lint → test → build)
+- **Dependencies:** pnpm (pinned) + Renovate
 
-### セキュリティ
+### Security
 
-- パストラバーサル防止 — DraftStore / HistoryStore で `resolve()` + プレフィックスチェック
-- 日付フォーマットバリデーション — HistoryStore のファイル名に正規表現チェック
-- Slack mrkdwn エスケープ — `&`, `<`, `>` をエスケープしインジェクション防止
-- テンプレートインジェクション防止 — 単一パス正規表現置換で再帰置換を排除
-- クレデンシャル完全検証 — パブリッシャー登録時に全認証情報の存在を確認
-- 外部 HTTP タイムアウト — 全 API 呼び出しに 30 秒の `AbortSignal.timeout`
-- URL 数上限 — StateStore の processedUrls は 10,000 件でキャップ (FIFO)
+- **Path traversal prevention** — `resolve()` + prefix
+  check in DraftStore / HistoryStore
+- **Date format validation** — Regex check on HistoryStore
+  filenames
+- **Slack mrkdwn escaping** — `&`, `<`, `>` escaped to
+  prevent injection
+- **Template injection prevention** — Single-pass regex
+  replacement
+- **Credential validation** — All credentials required
+  before registering publishers
+- **HTTP timeouts** — 30s `AbortSignal.timeout` on all
+  external API calls
+- **URL cap** — processedUrls capped at 10,000 entries
+  (FIFO eviction)
 
-## ライセンス
+## License
 
 ISC
