@@ -64,4 +64,22 @@ describe("WordPressPublisher", () => {
 		expect(result.url).toBeNull();
 		expect(result.error).toContain("401");
 	});
+
+	it("should catch network errors", async () => {
+		const mockFetch = vi.fn().mockRejectedValue(new Error("Connection refused"));
+
+		const publisher = new WordPressPublisher(
+			{
+				apiUrl: "https://blog.example.com/wp-json/wp/v2",
+				user: "admin",
+				appPassword: "xxxx-xxxx",
+				status: "draft",
+			},
+			mockFetch,
+		);
+
+		const result = await publisher.publish(makeDraft());
+		expect(result.url).toBeNull();
+		expect(result.error).toBe("Connection refused");
+	});
 });

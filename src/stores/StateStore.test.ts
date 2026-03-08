@@ -44,4 +44,14 @@ describe("StateStore", () => {
 		expect(state.lastRun).toBeDefined();
 		expect(new Date(state.lastRun).getTime()).toBeGreaterThan(0);
 	});
+
+	it("should not duplicate already processed urls", async () => {
+		const store = new StateStore(join(tmpDir, "processed.json"));
+		await store.markProcessed("https://example.com/article-1");
+		await store.markProcessed("https://example.com/article-1");
+		const state = await store.load();
+		expect(state.processedUrls.filter((u) => u === "https://example.com/article-1")).toHaveLength(
+			1,
+		);
+	});
 });

@@ -46,4 +46,21 @@ describe("PublisherPool", () => {
 		expect(result.error).toContain("No publisher");
 		expect(result.url).toBeNull();
 	});
+
+	it("should publish all drafts in parallel", async () => {
+		const xPublisher: PublisherInterface = {
+			publish: vi.fn().mockResolvedValue({
+				channel: "x",
+				title: "Test",
+				url: "https://x.com/i/status/123",
+				error: null,
+				publishedAt: "2026-03-08T10:00:00Z",
+			}),
+		};
+
+		const pool = new PublisherPool(new Map([["x", xPublisher]]));
+		const results = await pool.publishAll([makeDraft("x"), makeDraft("x")]);
+		expect(results).toHaveLength(2);
+		expect(xPublisher.publish).toHaveBeenCalledTimes(2);
+	});
 });

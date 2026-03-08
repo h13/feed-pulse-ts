@@ -49,4 +49,10 @@ describe("SlackNotifier", () => {
 		await notifier.notify([]);
 		expect(mockFetch).not.toHaveBeenCalled();
 	});
+
+	it("should not throw on network error", async () => {
+		const mockFetch = vi.fn().mockRejectedValue(new Error("DNS resolution failed"));
+		const notifier = new SlackNotifier("https://hooks.slack.com/test", mockFetch);
+		await expect(notifier.notify([makeDraft("x-test", "x")])).resolves.toBeUndefined();
+	});
 });

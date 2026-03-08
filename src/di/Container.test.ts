@@ -102,4 +102,66 @@ describe("Container", () => {
 
 		expect(container.notifier).toBeDefined();
 	});
+
+	it("should use SlackNotifier when SLACK_WEBHOOK_URL is set", async () => {
+		const container = await Container.create({
+			configDir: join(tmpDir, "config"),
+			stateDir: join(tmpDir, "state"),
+			promptsDir: join(tmpDir, "prompts"),
+			env: { ANTHROPIC_API_KEY: "test-key", SLACK_WEBHOOK_URL: "https://hooks.slack.com/test" },
+		});
+
+		expect(container.notifier).toBeDefined();
+	});
+
+	it("should register X publisher when X credentials are set", async () => {
+		const container = await Container.create({
+			configDir: join(tmpDir, "config"),
+			stateDir: join(tmpDir, "state"),
+			promptsDir: join(tmpDir, "prompts"),
+			env: {
+				ANTHROPIC_API_KEY: "test-key",
+				X_API_KEY: "key",
+				X_API_SECRET: "secret",
+				X_ACCESS_TOKEN: "token",
+				X_ACCESS_SECRET: "access-secret",
+			},
+		});
+
+		expect(container.publisherPool).toBeDefined();
+	});
+
+	it("should register WordPress publisher when WP credentials are set", async () => {
+		await writeFile(
+			join(tmpDir, "config/channels/blog.yaml"),
+			`channel:
+  name: "blog"
+  enabled: true
+  type: "wordpress"
+  persona:
+    tone: "formal"
+    style: "detailed"
+    language: "ja"
+    max_length: 5000
+  publish:
+    max_per_day: 2
+    status: "draft"
+`,
+		);
+
+		const container = await Container.create({
+			configDir: join(tmpDir, "config"),
+			stateDir: join(tmpDir, "state"),
+			promptsDir: join(tmpDir, "prompts"),
+			env: {
+				ANTHROPIC_API_KEY: "test-key",
+				WORDPRESS_API_URL: "https://blog.example.com/wp-json/wp/v2",
+				WORDPRESS_USER: "admin",
+				WORDPRESS_APP_PASSWORD: "xxxx",
+			},
+		});
+
+		expect(container.publisherPool).toBeDefined();
+		expect(container.channels).toHaveLength(2);
+	});
 });
