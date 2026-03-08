@@ -6,6 +6,7 @@ export default defineConfig({
 		exclude: ["node_modules", "dist"],
 		coverage: {
 			provider: "v8",
+			reporter: ["text", "json", "clover"],
 			include: ["src/**/*.ts"],
 			exclude: ["src/cli/**", "src/**/*.test.ts"],
 			thresholds: {
