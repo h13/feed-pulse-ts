@@ -18,6 +18,11 @@
       "semicolons": "always"
     }
   },
+  "json": {
+    "formatter": {
+      "indentStyle": "space"
+    }
+  },
   "files": {
     "includes": [
       "**",
