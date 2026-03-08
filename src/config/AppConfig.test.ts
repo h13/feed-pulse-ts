@@ -6,9 +6,6 @@ import {
 	loadInterestsConfig,
 	loadChannelConfig,
 	loadAllEnabledChannels,
-	type SourceConfig,
-	type InterestsConfig,
-	type ChannelConfig,
 } from "./AppConfig.js";
 
 const tmpDir = join(import.meta.dirname, "../../tmp-test-config");

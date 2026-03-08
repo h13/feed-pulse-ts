@@ -32,6 +32,9 @@ importers:
       "@biomejs/biome":
         specifier: 2.4.6
         version: 2.4.6
+      "@types/crypto-js":
+        specifier: 4.2.2
+        version: 4.2.2
       "@types/node":
         specifier: 25.3.5
         version: 25.3.5
@@ -670,6 +673,12 @@ packages:
     resolution:
       {
         integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==,
+      }
+
+  "@types/crypto-js@4.2.2":
+    resolution:
+      {
+        integrity: sha512-sDOLlVbHhXpAUAL0YHDUUwDZf3iN4Bwi4W6a0W0b+QcAezUbRtH4FVb+9J4h+XFPW7l/gQ9F8qC7P+Ec4k8QVQ==,
       }
 
   "@types/deep-eql@4.0.2":
@@ -1495,6 +1504,8 @@ snapshots:
     dependencies:
       "@types/deep-eql": 4.0.2
       assertion-error: 2.0.1
+
+  "@types/crypto-js@4.2.2": {}
 
   "@types/deep-eql@4.0.2": {}
 
